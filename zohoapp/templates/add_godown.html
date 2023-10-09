@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+  integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+  integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<style>
+  select:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  #customer_sel option:hover {
+    background-color: rgb(210, 132, 30);
+  }
+
+  .element-below-fixed {
+    padding-top: 100px;
+  }
+
+  /* width */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  .modal {
+    z-index: 9999;
+    overflow: scroll;
+  }
+</style>
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+
+  function cancelDialog() {
+
+    var frm = document.getElementById("forms");
+    let customMsg = "Are you sure you want to cancel?";
+
+    if (confirm(customMsg)) {
+      alert("adjustment cancelled!")
+    }
+  }
+
+  function saveAsDraftDialog() {
+
+    var frm = document.getElementById("forms");
+    frm.action = ("{% url 'createestimate'%}")
+  }
+
+  // function get_customer_email() {
+
+  //  var eml = document.getElementById("customer_sel");
+  //  eml.action = ("{% url 'newestimate'%}")
+  // }
+
+  function saveAndSendDialog() {
+
+    var frm = document.getElementById("forms");
+    frm.action = ("{% url 'create_and_send_estimate'%}")
+  }
+  $(document).ready(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+
+
+
+</script>
+
+
+
+<section>
+  <div style="top: 7rem;">
+    <div class="row  ml-2">
+      <div class="col-md-3 "><a class="text-white" style="font-size: 1.8rem;">Add Godown</a></div>
+
+    </div>
+    <div></div>
+    <form method="POST" action="{% url 'save_godown' %}" class="p-5" enctype="multipart/form-data" id="forms"
+      onreset="return confirm('Are you sure you want to cancel the data?');">
+      {% csrf_token %}
+
+
+      <div class="form-group row">
+  <label class="col-sm-2 col-form-label">Date *</label>
+  <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+    <input required type="date" class="form-control bg-white text-dark" name="date" id="dateInput">
+  </div>
+</div>
+
+<div class="form-group row">
+  <label class="col-sm-2 col-form-label">Item *</label>
+  <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+    <select class="form-control text-dark" id="items" name="item">
+      <option hidden disabled selected value="">Select Item</option>
+      {% for add in additem %}
+      <option value="{{add.id}}">{{add.Name}}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-sm-4">
+    <a href="" data-toggle="modal" data-target="#newcustomer"><i class="fa-solid  fa fa-plus p-2 rounded"
+        style="color: white; background-color: rgb(5, 214, 19); height: 34px;"></i></a>
+  </div>
+</div>
+      
+<div class="form-group row" id="hsn_row" style="display: none;">
+  <label class="col-sm-2 col-form-label">HSN *</label>
+  <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+    <input type="text" id="hsn" name="hsn" class="form-control text-dark" style="height: 35px;" readonly>
+  </div>
+</div>
+
+<div class="form-group row" id="stockhand_row" style="display: none;">
+  <label class="col-sm-2 col-form-label">Stock in Hand *</label>
+  <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+    <input type="text" id="stock" name="stock" class="form-control text-dark" style="height: 35px;" readonly>
+  </div>
+</div>
+
+      
+
+
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Godown Name *</label>
+        <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+          <input type="text" name="name" style="width: 100%; height: 35px;">
+        </div>
+      </div>
+
+
+
+  <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Address</label>
+    <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+      <textarea name="address" id="" cols="38" rows="3" style=" border:1px white solid;border-radius:5px;"
+        placeholder="&nbsp;Max 500 characters"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Stock Keeping *</label>
+    <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+        <input type="number" id="stockkeeping" name="stockkeeping" class="form-control text-dark" style="height: 35px;" oninput="validateStockKeeping(this);">
+        <div id="stockError" class="text-danger"></div>
+    </div>
+</div>
+
+
+  <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Kilometer(difference b/w company) *</label>
+    <div class="col-sm-6 col-md-5 col-6" style="margin-left: -1.1rem;">
+      <input type="number" id="kilometer" name="Kilometer" class="form-control text-dark" style="height: 35px;">
+    </div>
+  </div>
+
+
+
+
+  <!-- show/hide table according to radio -->
+  {% comment %}
+  <script>
+    // Function to show the Quantity Adjustment table
+    function showQuantityAdjustmentTable() {
+      document.getElementById('tab_row1').style.display = 'block';
+      // Hide the Value Adjustment table
+      document.getElementById('tab_row2').style.display = 'none';
+    }
+
+    // Function to show the Value Adjustment table
+    function showValueAdjustmentTable() {
+      document.getElementById('tab_row1').style.display = 'none';
+      // Show the Value Adjustment table
+      document.getElementById('tab_row2').style.display = 'block';
+    }
+
+    // Add event listeners to the radio buttons
+    document.getElementById('gridRadios1').addEventListener('change', showQuantityAdjustmentTable);
+    document.getElementById('gridRadios2').addEventListener('change', showValueAdjustmentTable);
+
+    // Initially, show only Table 1 and hide Table 2
+    document.getElementById('tab_row1').style.display = 'block';
+    document.getElementById('tab_row2').style.display = 'none';
+  </script> {% endcomment %}
+
+
+
+
+  <div class="row">
+    <div class="-sm-12 col-md-6 col-lg-6">
+      <!-- <input type="submit" class="btn text-white mt-5" style="background-color:  rgb(59, 59, 58) ; " 
+                onclick="saveAsDraftDialog()" value="Save As Draft"> -->
+
+      {% comment %} <input type="submit" class="btn text-white mt-5" style="background-color:  rgb(59, 59, 58) ;  "
+        name="save_draft" value="Save As Draft"> {% endcomment %}
+      <input type="submit" class="btn text-white mt-5" style="background-color: rgb(5, 214, 19); "
+        name="convert_adjusted" value="Save">
+      <input type="reset" class="btn text-white mt-5" style="background-color: rgb(5, 214, 19);" value="Cancel">
+  
+      <div class="-sm-12 col-md-6 col-lg-6"></div>
+    </div>
+
+    </form>
+
+<script>
+        // Get references to the relevant elements
+        var hsnRow = document.getElementById('hsn_row');
+        var stockhandRow = document.getElementById('stockhand_row');
+        var itemsDropdown = document.getElementById('items');
+      
+        // Add an event listener to the dropdown to listen for changes
+        itemsDropdown.addEventListener('change', function () {
+          // Check if the selected value is not empty
+          if (itemsDropdown.value !== '') {
+            // If a value is selected, show the HSN row
+            hsnRow.style.display = 'block';
+            // Show the Stock in Hand row
+            stockhandRow.style.display = 'block';
+          } else {
+            // If no value is selected, hide both rows
+            hsnRow.style.display = 'none';
+            stockhandRow.style.display = 'none';
+          }
+        });
+      </script>
+
+
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          // Get references to the relevant elements
+          const itemsDropdown = document.getElementById('items');
+          const hsnInput = document.getElementById('hsn');
+          const stockhandInput = document.getElementById('stock');
+      
+          // Add an event listener to the dropdown to listen for changes
+          itemsDropdown.addEventListener('change', function () {
+            const selectedItemId = itemsDropdown.value;
+      
+            // Send an AJAX request to fetch HSN and Stock in Hand values
+            if (selectedItemId !== '') {
+              fetch(`/get_item_info/${selectedItemId}/`)  // Replace with your Django URL for fetching item info
+                .then(response => response.json())
+                .then(data => {
+                  hsnInput.value = data.hsn;
+                  stockhandInput.value = data.stock;
+                })
+                .catch(error => {
+                  console.error('Error fetching item info:', error);
+                });
+            } else {
+              // Clear the inputs if no item is selected
+              hsnInput.value = '';
+              stockhandInput.value = '';
+            }
+          });
+        });
+      </script>
+      
+      
+      
+   
+
+    <script>
+      const addNewReasonBtn = document.getElementById('addNewReasonBtn');
+      const reasonDiv = document.getElementById('reasonDiv');
+      const cancelBtn = document.getElementById('cancelBtn');
+
+
+      addNewReasonBtn.addEventListener('click', () => {
+        reasonDiv.style.display = 'block';
+        addNewReasonBtn.style.display = 'none'
+      });
+
+      cancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        reasonDiv.style.display = 'none';
+        addNewReasonBtn.style.display = 'block';
+        reasonInput.value = '';
+      });
+    </script>
+
+
+
+
+    </div>
+  </div>
+
+
+
+</section>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+  integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+  integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="
+  crossorigin="anonymous"></script>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+
+
+<script>
+  function validateStockKeeping(input) {
+      var stockInput = document.getElementById('stock');
+      var stockError = document.getElementById('stockError');
+      
+      var stockKeepingValue = parseInt(input.value);
+      var stockValue = parseInt(stockInput.value);
+      
+      if (stockKeepingValue > stockValue) {
+          stockError.textContent = 'Stock Keeping cannot be greater than Stock in Hand.';
+          stockError.style.display = 'block';
+      } else {
+          stockError.textContent = ''; // Clear the error message
+          stockError.style.display = 'none';
+      }
+  }
+</script>
+
+
+<script>
+// reason modal
+console.log('csrf_token')
+
+$(document).on("click","#reasaveButton",function(){
+$.ajax({
+
+type : 'POST',
+url:"#",
+data:{
+
+reasonlist : $("#reasoninp").val(),
+
+
+
+},
+headers: {
+"X-CSRFToken": "{{ csrf_token }}"
+},
+
+
+success: function(response) {
+document.getElementById("modalReason").reset();
+reloadUnit();
+},
+});
+});
+
+
+
+
+</script>
+<script>
+  function reloadItem() {
+
+    $.ajax({
+      url: "#",
+      type: "GET",
+      dataType: "json",
+      data: $(this).serialize(),
+      csrfmiddlewaretoken: '{{ csrf_token }}',
+
+      success: function (data) {
+        var dropdown = $('#items');
+        dropdown.empty();
+        $.each(data, function (key, value) {
+          // dropdown.append($('<option></option>').attr('value', key).text(value[1]).val(value[0] + ' ' + value[1]));
+          dropdown.append($('<option></option>').attr('value', key).text(value[1]).val(key));
+        });
+      },
+      error: function (xhr, status, error) {
+        console.error(xhr.responseText);
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    $('#items').change(function () {
+
+      var name = $("#items").val();
+      var na = name.split(' ')[0];
+      var table = document.getElementById("retainer-table");
+      $.ajax({
+
+        url: "{% url 'get_itemsdet' %}",
+
+        data: {
+          id: na,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+
+        type: 'POST',
+
+        success: function (data) {
+
+          $("#hsn_row").removeClass('d-none');
+          $("#hsn_row").addClass('d-flex');
+
+
+          $('#hsn').val(' ' + data.hsn);
+          // $('#cus_place').val(data.cust_place_supply);
+          $('#items_id').val(data.cust_id);
+          var x = document.getElementById("cus_place").value
+
+          var y = document.getElementById("state").value
+
+
+
+        }
+
+      });
+    });
+  });
+</script>
+
+<script>
+  function reloadItem() {
+
+    $.ajax({
+      url: "#",
+      type: "GET",
+      dataType: "json",
+      data: $(this).serialize(),
+      csrfmiddlewaretoken: '{{ csrf_token }}',
+
+      success: function (data) {
+        var dropdown = $('#items');
+        dropdown.empty();
+        $.each(data, function (key, value) {
+          // dropdown.append($('<option></option>').attr('value', key).text(value[1]).val(value[0] + ' ' + value[1]));
+          dropdown.append($('<option></option>').attr('value', key).text(value[1]).val(key));
+        });
+      },
+      error: function (xhr, status, error) {
+        console.error(xhr.responseText);
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    $('#items').change(function () {
+
+      var name = $("#items").val();
+      var na = name.split(' ')[0];
+      var table = document.getElementById("retainer-table");
+      $.ajax({
+
+        url: "#",
+
+        data: {
+          id: na,
+          csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+
+        type: 'POST',
+
+        success: function (data) {
+
+          $("#stockhand_row").removeClass('d-none');
+          $("#stockhand_row").addClass('d-flex');
+
+
+          $('#stockhand').val(' ' + data.hsn);
+          // $('#cus_place').val(data.cust_place_supply);
+          $('#items_id').val(data.cust_id);
+          var x = document.getElementById("cus_place").value
+
+          var y = document.getElementById("state").value
+
+
+
+        }
+
+      });
+    });
+  });
+</script>
+
+
+
+{% endblock %}
