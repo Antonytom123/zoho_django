@@ -15478,3 +15478,75 @@ def balance_sheet_sthree(request):
 def customize_report_bss3(request):
     company = company_details.objects.get(user = request.user.id)
     return render(request,'customize_report_bss3.html',{'company':company})
+
+#_______________________Godown______________________
+
+def add_godown(request):
+    company=company_details.objects.get(user=request.user)
+    additem=AddItem.objects.all()
+    return render(request,'add_godown.html',{'company':company,'additem':additem})
+
+def view_godown(request):
+    return render(request,'view_godown.html')
+
+# @login_required(login_url='login')
+# def items_dropdown(request):
+#     user = User.objects.get(id=request.user.id)
+#     options = {}
+#     option_objects = AddItem.objects.filter(user=user)
+#     for option in option_objects:
+#         display_name = option.hsn
+#         # options[option.id] = [option.id , option.customerName]
+#         options[option.id] = [display_name, f"{display_name}"]
+#     return JsonResponse(options)
+
+@login_required(login_url='login')
+def get_itemsdet(request):
+    company= company_details.objects.get(user = request.user)
+    name = request.POST.get('name')
+    id = request.POST.get('id')
+    cust = AddItem.objects.get(user=company.user_id,id=id)
+    hsn = cust.hsn
+    cust_id=id
+    # cust_place_supply=cust.placeofsupply
+    # gstin = 0
+    # gsttr = cust.GSTTreatment
+    # cstate = cust.placeofsupply.split("] ")[1:]
+    print(hsn)
+    # print(gstin)
+    print(id)
+    # state = 'Not Specified' if cstate == "" else cstate
+    return JsonResponse({'hsn' :hsn,'cust_id':cust_id},safe=False)
+
+def get_item_info(request, item_id):
+    try:
+        item = AddItem.objects.get(pk=item_id)
+        item_info = {
+            'hsn': item.hsn,
+            'stock': item.stock,  
+        }
+        return JsonResponse(item_info)
+    except AddItem.DoesNotExist:
+        return JsonResponse({'error': 'Item not found'}, status=404)
+
+
+@login_required(login_url='login')
+def save_godown(request):
+    if request.method == 'POST':
+        date = request.POST['date']
+        item = request.POST['item']
+        hsn = request.POST['hsn']
+        stockinhand = request.POST['stock']
+        godown_name = request.POST['name']
+        Address = request.POST['address']
+        stockkeeping = request.POST['stockkeeping']
+        kilometer = request.POST['Kilometer']
+
+        godown = Addgodown(date=date, item=item,hsn=hsn,stockinhand=stockinhand, godownname=godown_name,
+                              Address=Address, stockkeeping=stockkeeping, kilometer=kilometer)
+        godown.save()
+
+  
+        return redirect('view_godown')  
+
+    return render(request, 'add_godown.html')  

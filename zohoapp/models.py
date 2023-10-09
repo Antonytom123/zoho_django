@@ -1441,3 +1441,19 @@ class Inventory_adj_comments(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     adjustment=models.ForeignKey(Adjustment,on_delete=models.CASCADE,null=True,blank=True)
     comments=models.CharField(max_length=500,null=True,blank=True)
+
+
+#------------------------godown-------------------------------
+
+class Addgodown(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
+    additem=models.ForeignKey(AddItem,on_delete=models.CASCADE,default='')
+    date = models.DateField(max_length=255,null=True,blank=True)
+    item = models.CharField(max_length=255,blank=True)
+    hsn=models.IntegerField(null=True,blank=True) 
+    stockinhand=models.IntegerField(null=True,blank=True) 
+    godownname=models.TextField(max_length=255)
+    Address = models.TextField()
+    stockkeeping=models.IntegerField(blank=True,null=True,)
+    kilometer=models.IntegerField(blank=True,null=True,)
+    satus=models.TextField(default='active')
