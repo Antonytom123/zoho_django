@@ -197,17 +197,20 @@
         <table id="godowntable" class="text-white" style="width: 100%;">
           <tbody>
               {% for v in viewgodown %}
-              <tr id="row_{{ v.id }}" {% if v.satus == 'active' or v.satus == 'Active' %}class="active" {% elif v.satus == 'inactive' or v.satus == 'Inactive' %}class="inactive" {% endif %}>
-                  <td>
-                      <div class="row">
-                          <div class="col-md-6">
-                              <a style="color: rgb(218, 143, 5);" href="{% url 'godownoverview' v.id %}">{{ v.godownname }}</a>
-                          </div>
-                          <a class="col-md-6 text-right" style="color: rgb(218, 143, 5);" href="{% url 'godownoverview' v.id %}">{{ v.stockkeeping }}</a>
-                      </div>
-                      <div class="row mt-3">
-                      </div>
-                  </td>
+              <td>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a style="color: rgb(218, 143, 5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" href="{% url 'godownoverview' v.id %}">{{ v.godownname }}</a>
+                    </div>
+                    <div class="col-md-6">
+                        <a style="color: rgb(218, 143, 5); margin-left: 6vw;" href="{% url 'godownoverview' v.id %}">{{ v.stockkeeping }}</a>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                </div>
+            </td>
+            
+              
               </tr>
               {% endfor %}
           </tbody>
@@ -222,7 +225,7 @@
         <div class="col-md-12 text-white text-right my-auto" style="text-align: end;">
           <div class="btn-group" role="group" aria-label="Basic example">
           
-            <a href="{% url 'edit_savegodown' product.id %}" class="btn btn-sm ms-1  text-white"
+            <a href="{% url 'godown_edit' product.id %}" class="btn btn-sm ms-1  text-white"
               style="background-color:  rgb(212, 139, 3);border-radius: 5px;height: 1.7rem;" data-toggle="tooltip"
               title="Edit">
               <i class="fas fa-pencil-alt"></i> </a>
@@ -254,7 +257,7 @@
             <form method="post" enctype="multipart/form-data" id="upload-form" action="{% url 'upload_documentsgodown' godown_id=product.id %}">
               {% csrf_token %}
               <input type="file" name="attachment" id="attachment" onchange="handleFileSelection(event)" style="display: none;">
-              <a href="#" class="btn btn-sm text-white ms-1" id="file-button" style="background-color: rgb(212, 139, 3); border-radius: 5px;">
+              <a href="#" class="btn btn-sm text-white ms-1"  id="file-button" style="background-color: rgb(212, 139, 3); border-radius: 5px; height: 1.7rem;">
                   <i class="fa fa-paperclip"></i>
               </a>
       </form>
@@ -272,36 +275,22 @@
       }
     </script>
 
-
-            {% comment %} {% if estimate.attachment != ""%}
-            <a href="{{estimate.attachment.url}}"
-              style="background-color:  rgb(212, 139, 3);border-radius: 5px;height: 1.7rem;"
-              class="btn  ms-1 text-white" data-toggle="tooltip" title="Download Attached File">
-              <span class="mdi mdi-download"></span></a>
-            {%endif%} {% endcomment %}
-
-
-
           </div>
 
-          <a class="btn  btn-sm text-white ml-1" style="background-color:  rgb(212, 139, 3);"
+          <a class="btn  btn-sm text-white ml-1" style="background-color:  rgb(212, 139, 3); height: 1.7rem; "
             href="{% url 'godown_active' product.id %}" id="sts">{{product.satus}}</a>
 
-          {% comment %} <a href="{% url 'deleteviewgodown' product.id %}" class="btn btn-sm text-white" title="Delete"
-            style="background-color:  rgb(212, 139, 3);border-radius: 5px;height: 1.7rem;"
-            onclick="return confirm('Do you want to Delete this Godown?');"><i class="fas fa-trash-alt"></i></a> {% endcomment %}
             <a href="" class="btn btn-sm text-white ms-1 "  data-target="#delete"
-        style="background-color:  rgb(212, 139, 3);border-radius: 5px;" data-toggle="modal" title="Delete">
+        style="background-color:  rgb(212, 139, 3); height: 1.7rem; border-radius: 5px; margin-left: -1.7rem;" data-toggle="modal" title="Delete">
         <i class="fas fa-trash-alt"></i></a>
         </div>
         
       </div>
 
 
-      <div id="div_estimate" class="mx-2 my-4 p-4 "
+      <div id="div_godown" class="mx-2 my-4 p-4 "
         style="background-color: rgba(124, 124, 123, 0.507); height: 600px; overflow-y: scroll;">
-        <div class="slip m-1 p-4 pl-2 ml-1  bg-light" id="whatToPrint1"
-          style="box-shadow: 5px 5px 10px rgb(45, 45, 45); width: 98%;">
+        
           <div class="slip p-5 convert_to_pdf bg-light" id="whatToPrint"
             style="box-shadow: 5px 5px 10px rgb(45, 45, 45);">
 
@@ -334,20 +323,20 @@
               {{product.Address}}</h6>
 
             <h6 class="mr-5 text-dark">Stock Keeping </h6>
-            <h6 class="text-dark" style="margin-top: -1.5rem; margin-left: 13rem;">: {{product.stockkeeping}}</h6> <br>
+            <h6 class="text-dark" style="margin-top: -1.6rem; margin-left: 13rem; margin-bottom: 2rem;">: {{product.stockkeeping}}</h6> 
 
             <h6 class="mr-5 text-dark">Kilometer </h6>
-            <h6 class="text-dark" style="margin-top: -1.5rem; margin-left: 13rem;">: {{product.kilometer}}</h6> <br>
+            <h6 class="text-dark" style="margin-top: -1.6rem; margin-left: 13rem; margin-bottom: 2rem;">: {{product.kilometer}}</h6> 
 
             <h6 class="mr-5 text-dark">Status</h6>
-            <h6 class="text-dark" style="margin-top: -1.6rem; margin-left: 13rem;">: {{product.satus}}</h6> <br>
+            <h6 class="text-dark" style="margin-top: -1.6rem; margin-left: 13rem;">: {{product.satus}}</h6> 
 
           </div>
 
 
                  <!-- DElete modal -->
 
-    <div class="modal fade " id="delete"
+  <div class="modal fade " id="delete"
     style="width: 750px; margin-left: 350px; justify-content: center; overflow: hidden;">
     <div class="modal-dialog modal-xl m-5 p-5">
         <div class="modal-content" style="background: rgb(32, 35, 37);border-radius: 20px;">
@@ -364,8 +353,8 @@
                         {% csrf_token %}
                         <div class="row mt-2">
                             <div class="col-md-6 mt-2">
-                                <textarea class="form-control text-dark bg-light" id="delete" name="deletereason" required
-                                    style="height: 100px; width: 520px;"></textarea>
+                              <div style="color: red;">{{errmsg}}</div>
+                                <input type="text" class="form-control text-dark bg-light" id="delete" name="deletereason"  style="height: 100px; width: 520px;" required> 
                             </div>
                         </div>
 
@@ -411,8 +400,7 @@
                         {% csrf_token %}
                         <div class="row mt-2">
                             <div class="col-md-6 mt-2">
-                                <textarea class="form-control text-dark bg-light" id="comment" name="comments" required
-                                    style="height: 200px; width: 520px;"></textarea>
+                                <textarea class="form-control text-dark bg-light" id="comment" name="comments" style="height: 200px; width: 520px;" required></textarea>
                             </div>
                         </div>
 
@@ -492,6 +480,49 @@
       </div>
       </section>
     </div>
+
+    <div style="display: none;">
+      <div class="slip m-1 p-4 pl-2 ml-1  bg-light" id="whatToPrint1"
+      style="box-shadow: 5px 5px 10px rgb(45, 45, 45); width: 98%; ">
+    <h4 class="mr-4  text-dark" >Date</h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.date}}</h4>
+
+    <h4 class="mr-4 text-dark">Item</h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.item}}</h4>
+
+    <h4 class="mr-4 text-dark">Created Source </h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.user.username}}</h4>
+
+    <h4 class="mr-4 text-dark">HSN Code </h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.hsn}}</h4>
+
+    <h4 class="mr-4 text-dark">Stock in Hand </h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.stockinhand}}</h4>
+
+    <h4 class="mr-4 text-dark">Godown Name</h6>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.godownname}}</h4>
+
+    <h4 class="mr-4 text-dark">Address </h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">:
+      {{product.Address}}</h4>
+
+    <h4 class="mr-5 text-dark">Stock Keeping </h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">: {{product.stockkeeping}}</h4> 
+
+    <h4 class="mr-5 text-dark">Kilometer </h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem; margin-bottom: 2rem;">: {{product.kilometer}}</h4> 
+
+    <h4 class="mr-5 text-dark">Status</h4>
+    <h4 class="text-dark" style="margin-top: -1.9rem; margin-left: 13rem;">: {{product.satus}}</h4> 
+
+  </div>
+</div>
 
     <script>
       $(document).ready(function() {
@@ -580,7 +611,7 @@
 
     <script>
       function printDiv() {
-        var printContents = document.getElementById("whatToPrint").innerHTML;
+        var printContents = document.getElementById("whatToPrint1").innerHTML;
         var originalContents = document.body.innerHTML;
 
         // Create a new window for printing
@@ -653,37 +684,6 @@
           filterItems('all');
         });
       });
-    </script>
-
-
-    <script>
-      function uploadFile() {
-        const fileInput = document.getElementById("file-input");
-        const file = fileInput.files[0];
-        const csrfToken = getCookie('csrftoken');
-        const payrollId = document.getElementById("payroll-id").value;
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        fetch(`/add_loan_attach/${payrollId}/`, {
-          method: "POST",
-          headers: { 'X-CSRFToken': csrfToken },
-          body: formData
-        })
-          .then(response => response.json())
-          .then(data => {
-            const messageDiv = document.getElementById("upload-message");
-            if (data.message) {
-              messageDiv.textContent = data.message;
-              messageDiv.style.color = "green";
-            }
-            messageDiv.style.display = "block";
-          })
-          .catch(error => {
-            console.error("Error:", error);
-          });
-      }
     </script>
 
     <div id="upload-message" style="display:none;"></div>
@@ -785,13 +785,13 @@
     
     <script>
       function comment_list() {
-        document.getElementById("div_estimate").style.display = "none";
+        document.getElementById("div_godown").style.display = "none";
         document.getElementById("comments_fieldset1").style.display = "block";
         document.getElementById("comments_fieldset").style.display = "none";
 
       }
       function create_comment() {
-        document.getElementById("div_estimate").style.display = "none";
+        document.getElementById("div_godown").style.display = "none";
         document.getElementById("comments_fieldset").style.display = "block";
         document.getElementById("comments_fieldset1").style.display = "none";
       }
