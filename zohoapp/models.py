@@ -94,41 +94,43 @@ class History(models.Model):
 
 class vendor_table(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,null=True)
-    salutation=models.CharField(max_length=25,null=True)
-    first_name=models.CharField(max_length=50,null=True)
-    last_name=models.CharField(max_length=50,null=True)
-    company_name=models.CharField(max_length=150,null=True)
-    vendor_display_name=models.CharField(max_length=150,null=True)
-    vendor_email=models.CharField(max_length=250,null=True)
-    vendor_wphone=models.CharField(max_length=50,null=True)
-    vendor_mphone=models.CharField(max_length=50,null=True)
-    skype_number=models.CharField(max_length=50,null=True)
-    designation=models.CharField(max_length=50,null=True)
-    department=models.CharField(max_length=50,null=True)
-    website=models.CharField(max_length=250,null=True)
-    gst_treatment=models.CharField(max_length=100,null=True)
-    gst_number=models.CharField(max_length=50,null=True)
-    pan_number=models.CharField(max_length=50,null=True)
-    source_supply=models.CharField(max_length=100,null=True)
-    currency=models.CharField(max_length=50,null=True)
-    opening_bal=models.CharField(max_length=100,null=True)
-    payment_terms=models.CharField(max_length=100,null=True)
-    bstreet=models.CharField(max_length=100,default='')
+    salutation=models.CharField(max_length=25,default='')
+    first_name=models.CharField(max_length=50,default='')
+    last_name=models.CharField(max_length=50,default='')
+    company_name=models.CharField(max_length=150,default='')
+    vendor_display_name=models.CharField(max_length=150,default='')
+    vendor_email=models.CharField(max_length=250,default='')
+    vendor_wphone=models.CharField(max_length=50,default='')
+    vendor_mphone=models.CharField(max_length=50,default='')
+    skype_number=models.CharField(max_length=50,default='')
+    designation=models.CharField(max_length=50,default='')
+    department=models.CharField(max_length=50,default='')
+    website=models.CharField(max_length=250,default='')
+    gst_treatment=models.CharField(max_length=100,default='')
+    gst_number=models.CharField(max_length=50,null=True,default='')
+    pan_number=models.CharField(max_length=50,null=True,default='')
+    source_supply=models.CharField(max_length=100,default='')
+    currency=models.CharField(max_length=50,default='')
+    opening_bal=models.CharField(max_length=100,default='')
+    opening_bal_type=models.CharField(max_length=100,null=True,blank=True,default='')
+    payment_terms=models.CharField(max_length=100,default='')
+    battention=models.CharField(max_length=100,default='')
     bcountry=models.CharField(max_length=100,default='')
     baddress=models.CharField(max_length=300,default='')
     bcity=models.CharField(max_length=100,default='')
     bstate=models.CharField(max_length=100,default='')
-    bpin=models.CharField(max_length=100,default='')
+    bzip=models.CharField(max_length=100,default='')
     bphone=models.CharField(max_length=100,default='')
     bfax=models.CharField(max_length=100,default='')
-    sstreet=models.CharField(max_length=100,default='')
+    sattention=models.CharField(max_length=100,default='')
     scountry=models.CharField(max_length=100,default='')
     saddress=models.CharField(max_length=300,default='')
     scity=models.CharField(max_length=100,default='')
     sstate=models.CharField(max_length=100,default='')
-    spin=models.CharField(max_length=100,default='')
+    szip=models.CharField(max_length=100,default='')
     sphone=models.CharField(max_length=100,default='')
     sfax=models.CharField(max_length=100,default='')
+    status=models.CharField(max_length=100,null=True,blank=True,default='')
 
 class comments_table(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,null=True,default='')
@@ -388,7 +390,11 @@ class bank(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
     acc_type = models.CharField(max_length=220,default='', null=True, blank=True)
     bank_name = models.CharField(max_length=220,default='', null=True, blank=True)
-    
+
+class repeat_every(models.Model):
+    Terms=models.CharField(max_length=100,null=True,blank=True)
+    num=models.CharField(max_length=255,null=True,blank=True)
+
 class Expense(models.Model):
     EXPENSE_TYPES = [
         ('goods', 'Goods'),
@@ -396,33 +402,33 @@ class Expense(models.Model):
     ]
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     profile_name = models.CharField(max_length=255)
-    repeat_every = models.CharField(max_length=50)
-    start_date = models.DateField()
+    repeatevery =models.ForeignKey(repeat_every, on_delete=models.CASCADE, null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True,default='')
     ends_on = models.DateField(null=True, blank=True)
     expense_account =models.ForeignKey(Account, on_delete=models.CASCADE, null=True, blank=True)
     expense_type = models.CharField(max_length=50,choices=EXPENSE_TYPES)
     hsn = models.CharField(max_length=255, blank=True, null=True)
     sac = models.CharField(max_length=255, blank=True, null=True)
-    vendormail=models.CharField(max_length=100,null=True,blank=True)
-    gst_treatment = models.CharField(max_length=255, blank=True)
-    customer = models.ForeignKey(customer, on_delete=models.CASCADE,default='')
-    customeremail=models.CharField(max_length=100,null=True,blank=True)
     goods_label = models.CharField(max_length=255, default='')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=10)
     paidthrough = models.CharField(max_length=50)
     vendor = models.ForeignKey(vendor_table, on_delete=models.CASCADE)
+    gst_treatment = models.CharField(max_length=255, blank=True)
     gst = models.CharField(max_length=255, blank=True)
+    vendormail=models.CharField(max_length=100,null=True,blank=True)
     destination = models.CharField(max_length=255, blank=True)
     tax = models.CharField(max_length=255, blank=True)
     notes = models.CharField(max_length=255, blank=True)
+    customer = models.ForeignKey(customer, on_delete=models.CASCADE,default='')
+    customeremail=models.CharField(max_length=100,null=True,blank=True)
     status = models.CharField(max_length=255, blank=True)
     comments = models.TextField(blank=True, null=True)
     activation_tag = models.CharField(max_length=255,default='')
     title = models.CharField(max_length=255,default='')
     document = models.FileField(upload_to='uploads/', null=True, blank=True)
 
-    def _str_(self):
+    def str(self):
         return self.profile_name
 
 
@@ -596,10 +602,6 @@ class Comment(models.Model):
     def _str_(self):
         return self.comment
         
-
-class repeat_every(models.Model):
-    Terms=models.CharField(max_length=100,null=True,blank=True)
-    num=models.CharField(max_length=255,null=True,blank=True)
     
     
 class payment_item(models.Model):
@@ -1441,19 +1443,38 @@ class Inventory_adj_comments(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
     adjustment=models.ForeignKey(Adjustment,on_delete=models.CASCADE,null=True,blank=True)
     comments=models.CharField(max_length=500,null=True,blank=True)
+    
+class repeat_everyterms(models.Model):
+    Terms=models.CharField(max_length=100,null=True,blank=True)
 
 
 #------------------------godown-------------------------------
 
 class Addgodown(models.Model):
-    user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
-    additem=models.ForeignKey(AddItem,on_delete=models.CASCADE,default='')
-    date = models.DateField(max_length=255,null=True,blank=True)
-    item = models.CharField(max_length=255,blank=True)
-    hsn=models.IntegerField(null=True,blank=True) 
-    stockinhand=models.IntegerField(null=True,blank=True) 
-    godownname=models.TextField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
+    additem = models.ForeignKey(AddItem, on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField(max_length=255, null=True, blank=True)
+    item = models.CharField(max_length=255, blank=True)
+    hsn = models.IntegerField(null=True, blank=True)
+    stockinhand = models.IntegerField(null=True, blank=True)
+    godownname = models.TextField(max_length=255)
     Address = models.TextField()
-    stockkeeping=models.IntegerField(blank=True,null=True,)
-    kilometer=models.IntegerField(blank=True,null=True,)
-    satus=models.TextField(default='active')
+    stockkeeping = models.IntegerField(blank=True, null=True)
+    kilometer = models.IntegerField(blank=True, null=True)
+    satus = models.TextField(default='Active')
+
+class Delete_godown(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
+    godown=models.ForeignKey(Addgodown,on_delete=models.CASCADE,null=True,blank=True)
+    deletestatus = models.IntegerField(default='0', blank=True)
+    reason=models.TextField(max_length=255,blank=True, null=True)
+
+class Comments_godown(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
+    godown=models.ForeignKey(Addgodown,on_delete=models.CASCADE,null=True,blank=True)
+    content = models.TextField(max_length=255,null=True,blank=True) 
+
+class Attachgodown(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default='')
+    godown = models.ForeignKey(Addgodown, on_delete=models.CASCADE, null=True)
+    attachment= models.FileField(upload_to='attachment/', blank=True, null=True)

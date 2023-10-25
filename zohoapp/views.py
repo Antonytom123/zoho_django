@@ -728,7 +728,7 @@ def sort_product_name(request,id):
     
 def sort_product_hsn(request,id):
 
-    company=company_details.objects.get(user=request.user)
+    company=company_details.objects.get(user=request.user) 
     user_id=request.user
     items=AddItem.objects.all().order_by('hsn')
     product=AddItem.objects.get(id=id)
@@ -820,6 +820,7 @@ def add_vendor(request):
         vendor_data.department=request.POST['department']
         vendor_data.website=request.POST['website']
         vendor_data.gst_treatment=request.POST['gst']
+        vendor_data.status="Active"
 
         x=request.POST['gst']
         if x=="Unregistered Business-not Registered under GST":
@@ -865,7 +866,8 @@ def add_vendor(request):
         rdata.save()
 
 
-#  ...........................adding multiple rows of table to model  ........................................................       
+#  ...........................adding multiple rows of table to model  ........................................................  
+     
         salutation =request.POST.getlist('salutation[]')
         first_name =request.POST.getlist('first_name[]')
         last_name =request.POST.getlist('last_name[]')
@@ -877,19 +879,20 @@ def add_vendor(request):
         department =request.POST.getlist('department[]') 
         vdata=vendor_table.objects.get(id=vendor_data.id)
         vendor=vdata
-       
-
-        if len(salutation)==len(first_name)==len(last_name)==len(email)==len(work_phone)==len(mobile)==len(skype_number)==len(designation)==len(department):
-            mapped2=zip(salutation,first_name,last_name,email,work_phone,mobile,skype_number,designation,department)
-            mapped2=list(mapped2)
-            print(mapped2)
-            for ele in mapped2:
-                created = contact_person_table.objects.get_or_create(salutation=ele[0],first_name=ele[1],last_name=ele[2],email=ele[3],
-                         work_phone=ele[4],mobile=ele[5],skype_number=ele[6],designation=ele[7],department=ele[8],user=udata,vendor=vendor)
-        
+        print("hi")
+        print(salutation)
+        if salutation != ['Select']:
+            if len(salutation)==len(first_name)==len(last_name)==len(email)==len(work_phone)==len(mobile)==len(skype_number)==len(designation)==len(department):
+                mapped2=zip(salutation,first_name,last_name,email,work_phone,mobile,skype_number,designation,department)
+                mapped2=list(mapped2)
+                print(mapped2)
+                for ele in mapped2:
+                    created = contact_person_table.objects.get_or_create(salutation=ele[0],first_name=ele[1],last_name=ele[2],email=ele[3],
+                            work_phone=ele[4],mobile=ele[5],skype_number=ele[6],designation=ele[7],department=ele[8],user=udata,vendor=vendor)
+            
        
                  
-        return redirect('recurringhome')
+        return redirect('view_vendor_list')
         
 
 def sample(request):
@@ -927,8 +930,9 @@ def view_vendor_details(request,pk):
     print(v_email)
     print(name_and_id)
 
+    vendor_credits = Vendor_Credits_Bills.objects.filter(user = udata,vendor_name = name_and_id)
     expence = ExpenseE.objects.filter(user = udata,vendor_id = pk)
-    recurring_expense = Expense.objects.filter(user = udata,vendor_id = pk)
+    recurring_expense = Expense.objects.filter(vendor_id = pk)
     purchase_ordr = Purchase_Order.objects.filter(user = udata,vendor_name = name_and_id)
     paymnt_made = payment_made.objects.filter(user = udata,vendor_id = pk)
     purchase_bill = PurchaseBills.objects.filter(user = udata,vendor_name = fullname,vendor_email = v_email)
@@ -942,6 +946,7 @@ def view_vendor_details(request,pk):
         'ddata':ddata,
         'cmt_data':cmt_data,
         'contact_persons':contact_persons,
+        'vendor_credits':vendor_credits,
         'expence':expence,
         'recurring_expense':recurring_expense,
         'purchase_ordr':purchase_ordr,
@@ -1961,7 +1966,7 @@ def addinvoice(request):
 
 def add_prod(request):
     c=customer.objects.all()
-    company = company_details.objects.get(user=request.user.id)
+    company = company_s.objects.get(user=request.user.id)
     p=AddItem.objects.all()
     i=invoice.objects.all()
     payments=payment_terms.objects.all()
@@ -2796,6 +2801,7 @@ from .models import Expense, vendor_table
 def add_expense(request):
     if request.method == 'POST':
         # Retrieve form data
+        
         profile_name = request.POST['profile_name']
         repeatevery = request.POST['repeat_every']
         repeat=repeat_every.objects.filter(id=repeatevery).first()
@@ -2835,11 +2841,13 @@ def add_expense(request):
         else  :
            endson = request.POST.get('ends_on')
         
-        
+        userId=request.user.id
+        udata=User.objects.get(id=userId)
+       
         # Create and save the Expense instance
         expense = Expense(
             profile_name=profile_name,
-            repeat_every=repeat,
+            repeatevery=repeat,
             start_date=start_date,
             ends_on=endson,
             expense_account=expense_account,
@@ -2858,36 +2866,34 @@ def add_expense(request):
             customer= customer_obj,
             customeremail=custemail,
             vendormail= vmail,
-            activation_tag="active" # Set the activation_tag to "active"
+            activation_tag="active", # Set the activation_tag to "active"
+            user=udata
         )
         expense.save()
 
         return redirect('recurringbase')
     else:
-        vendors = vendor_table.objects.all()
-        accounts = Account.objects.all()  
-        repeat_list = repeat_every.objects.all()
-        print('repeat_list',repeat_list)
-        return render(request, 'recurring_home.html', {'vendors': vendors,'accounts':accounts,'repeat_list':repeat_list})
+       
+        return render(request, 'recurring_home.html')
 
 
 @login_required(login_url='login')
 def recurringbase(request):
-    expenses = Expense.objects.all()
+    userId=request.user.id
+    expenses = Expense.objects.filter(user=userId)
     company = company_details.objects.get(user = request.user)
     
     return render(request, 'recurring_base.html',{'expenses': expenses,'company':company})
 
 @login_required(login_url='login')
 def show_recurring(request, expense_id):
+    userid=request.user.id
     expense = get_object_or_404(Expense, id=expense_id)
-    expenses = Expense.objects.all()
+    expenses = Expense.objects.filter(user=userid)
     company = company_details.objects.get(user=request.user)
     accounts = Account.objects.all()
     account_types = set(Account.objects.values_list('accountType', flat=True))
-    print('expense',expense_id)
-    print('account_types',account_types)
-
+   
     search_query = request.GET.get('search_query')
     search_date = request.GET.get('search_date')
 
@@ -2905,8 +2911,11 @@ def show_recurring(request, expense_id):
     vendor = vendor_table.objects.get(id=expense.vendor_id)
     customers = customer.objects.get(id=expense.customer_id)
     vendors = vendor_table.objects.all()
+  
+    everyrepeat=repeat_every.objects.get(id=expense.repeatevery.id)
+   
 
-    return render(request, 'show_recurring.html', {'expense': expense,'expense.id':expense_id, 'expenses': expenses, 'comments': comments, 'company': company, 'vendor': vendor, 'customer': customers,'account':accounts,'account_types':account_types,'vendors':vendors})
+    return render(request, 'show_recurring.html', {'expense': expense,'expense.id':expense_id, 'expenses': expenses, 'comments': comments, 'company': company, 'vendor': vendor, 'customer': customers,'account':accounts,'account_types':account_types,'vendors':vendors,'repeat':everyrepeat})
 
 
 def expense_details(request, pk):
@@ -2922,10 +2931,13 @@ def expense_details(request, pk):
     return render(request, 'expenseview.html', context)
     
 def edit_expense(request, expense_id):
+    
+    user_id=request.user.id 
+
     expense = Expense.objects.get(id=expense_id)
-    print('expense.customer.id',expense.customer.id)
-    vendors = vendor_table.objects.all()
-    customers = customer.objects.all()
+    
+    vendors = vendor_table.objects.filter(user=user_id)
+    customers = customer.objects.filter(user=user_id)
     accounts = Account.objects.all()
     account_types = Account.objects.values_list('accountType', flat=True).distinct()
     selected_account = expense.expense_account
@@ -2933,14 +2945,14 @@ def edit_expense(request, expense_id):
     company = company_details.objects.get(user = request.user)
     repeat_list = repeat_every.objects.all()
     
-    repeat=repeat_every.objects.values_list('Terms', flat=True).distinct()
-   
+    
     
     if request.method == 'POST':
+       
         expense.profile_name = request.POST.get('profile_name')
         repeatevery_id= request.POST.get('repeat_every')
         repeat_id=repeat_every.objects.get(id=repeatevery_id)
-        print('repeat_id',repeat_id)
+        expense.repeatevery=repeat_id
         expense.start_date = request.POST.get('start_date')
         expense.ends_on = request.POST.get('ends_on')
         account_id = request.POST.get('expense_account')
@@ -2972,13 +2984,11 @@ def edit_expense(request, expense_id):
 
         expense.save()
         
-        return redirect('recurringbase')
+        return redirect('show_recurring',expense_id=expense_id)
     
     else:
         
-        return render(request, 'edit_expense.html', {'expense': expense, 'vendors': vendors, 'customers': customers,'accounts': accounts,'selected_account': selected_account,'items':  account_types,'payments':payments,'company':company,'repeat_list':repeat_list,'repeat':repeat})
-
-  
+        return render(request, 'edit_expense.html', {'expense': expense, 'vendors': vendors, 'customers': customers,'accounts': accounts,'selected_account': selected_account,'items':  account_types,'payments':payments,'company':company,'repeat_list':repeat_list})
         
 @login_required(login_url='login')
 def newexp(request):
@@ -4365,11 +4375,11 @@ def create_recur(request):
     company = company_details.objects.get(user=user)
     # custo=customer.objects.get(cust_name=cust)
     item=AddItem.objects.all()
-    sb=payment_terms.objects.all()
+    sb=payment.objects.all()
     cus=customer.objects.filter(user=user)
     pay=payments_recur.objects.all()
-    every=repeat_every.objects.all()
-    banks=Bankcreation.objects.all()
+    every=repeat_everyterms.objects.all()
+    banks=Bankcreation.objects.filter(user=user)
     unit=Unit.objects.all()
     sales=Sales.objects.all()
     purchase=Purchase.objects.all()
@@ -4520,13 +4530,13 @@ def edit_recur(request,id):
     unit=Unit.objects.all()
     sales=Sales.objects.all()
     purchase=Purchase.objects.all()
-    every=repeat_every.objects.all()
+    every=repeat_everyterms.objects.all()
     editr=Recurring_invoice.objects.get(id=id)
     tab=recur_itemtable.objects.filter(ri=id)
     company=company_details.objects.get(user_id=request.user.id)
     # print(type(editr.payment_type))
 
-    return render(request,'edit_recur.html',{'editr':editr,'banks':banks,'cus':cus,'tab':tab,'item':item,'pay':pay,'every':every,'company':company,'unit':unit,'sales':sales,'purchase':purchase})
+    return render(request,'edit_recur.html',{'editr':editr,'banks':banks,'cus':cus,'tab':tab,'item':item,'pay':pay,'every':every,'company':company,'unit':unit,'sales':sales,'purchase':purchase})  
    
 
 def editrecurpage(request,id):
@@ -4625,7 +4635,7 @@ def itemdata_recur(request):
 
     item = AddItem.objects.get(Name=id, user=user)
 
-    rate = item.p_price
+    rate = item.s_price
     place = company.state
     gst = item.intrastate
     igst = item.interstate
@@ -5426,6 +5436,7 @@ def recurbills_item(request):
         
         type=request.POST.get('type')
         name=request.POST.get('name')
+        print(name)
         ut=request.POST.get('unit')
         hsnc=request.POST.get('hsn')
         inter=request.POST.get('inter')
@@ -5436,7 +5447,9 @@ def recurbills_item(request):
         cost_price=request.POST.get('cost_price')
         cost_acc=request.POST.get('cost_acc')      
         cost_desc=request.POST.get('cost_desc')
-        
+        stock=request.POST.get('stock')
+        rate=request.POST.get('rate')
+        print(stock)
         units=Unit.objects.get(id=ut)
         sel=Sales.objects.get(id=sell_acc)
         cost=Purchase.objects.get(id=cost_acc)
@@ -5446,7 +5459,7 @@ def recurbills_item(request):
         u  = User.objects.get(id = request.user.id)
 
         item=AddItem(type=type,Name=name,p_desc=cost_desc,s_desc=sell_desc,s_price=sell_price,p_price=cost_price,
-                     user=u ,creat=history,interstate=inter,intrastate=intra,unit = units,sales = sel, purchase = cost,hsn=hsnc)
+                     user=u ,creat=history,interstate=inter,intrastate=intra,unit = units,sales = sel, purchase = cost,hsn=hsnc,stock=stock,rate=rate)
 
         item.save()
 
@@ -5665,7 +5678,7 @@ def every_terms(request):
         print('hi')
         terms=request.POST.get('name')
         print(terms)
-        ptr=repeat_every(Terms=terms)
+        ptr=repeat_everyterms(Terms=terms)
         ptr.save()
         response_data={
             "message":"success",
@@ -5818,7 +5831,8 @@ def customer_dropdown(request):
     for option in option_objects:
         display_name = option.customerName
         # options[option.id] = [option.id , option.customerName]
-        options[option.id] = [display_name, f"{display_name}"]
+        # options[option.id] = [display_name, f"{display_name}"]
+        options[option.id] = display_name
     return JsonResponse(options)
     
     
@@ -5857,7 +5871,7 @@ def entr_custmrA(request):
 
             # select=request.POST.get('pterms')
             
-            pterms=request.POST.get('pterms')
+            pterms=request.POST.get('terms')
 
             plst=request.POST.get('plst')
             plang=request.POST.get('plang')
@@ -6052,14 +6066,16 @@ def dashboard(request):
         Account(accountType='Expenses',accountName='Advertising & Marketing',description='Advertising & Marketing').save()
     if not Account.objects.filter(accountName='Automobile Expense').exists():
         Account(accountType='Expenses',accountName='Automobile Expense',description='Automobile Expense').save()
-    if not payment_terms.objects.filter(Terms='NET 30').exists():
-        payment_terms(Terms='NET 30').save()
-    if not payment_terms.objects.filter(Terms='NET 60').exists():
-        payment_terms(Terms='NET 60').save()
-    if not payment_terms.objects.filter(Terms='NET 45').exists():
-        payment_terms(Terms='NET 45').save()
-    if not payment_terms.objects.filter(Terms='Due on Receipt').exists():
-        payment_terms(Terms='Due on Receipt').save()
+
+    userId=User.objects.get(id=request.user.id)
+    if not payment_terms.objects.filter(Terms='NET 30',user=userId).exists():
+        payment_terms(Terms='NET 30',user=userId).save()
+    if not payment_terms.objects.filter(Terms='NET 60',user=userId).exists():
+        payment_terms(Terms='NET 60',user=userId).save()
+    if not payment_terms.objects.filter(Terms='NET 45',user=userId).exists():
+        payment_terms(Terms='NET 45',user=userId).save()
+    if not payment_terms.objects.filter(Terms='Due on Receipt',user=userId).exists():
+        payment_terms(Terms='Due on Receipt',user=userId).save()
 
     if not repeat_every.objects.filter(Terms='Week').exists():
         repeat_every(Terms='Week').save()
@@ -6358,7 +6374,7 @@ def payment_edit_view(request,pk):
     
 def purchase_order(request):
     company=company_details.objects.get(user=request.user)
-    vendor=vendor_table.objects.all()
+    vendor=vendor_table.objects.filter(user=request.user)
     cust=customer.objects.filter(user = request.user)
     payment=payment_terms.objects.all()
     item=AddItem.objects.all()
@@ -6726,6 +6742,7 @@ def create_Purchase_order(request):
         shipping_charge= request.POST['shipping_charge']
         grand_total=request.POST['grandtotal']
         note=request.POST['customer_note']
+        payment_type=request.POST['ptype']
         terms_con = request.POST['tearms_conditions']
         orgMail=request.POST.get('orgMail')
         u = User.objects.get(id = request.user.id)
@@ -6765,6 +6782,7 @@ def create_Purchase_order(request):
                                     shipping_charge = shipping_charge,
                                     grand_total=grand_total,
                                     note=note,
+                                    
                                     term=terms_con,
                                     company=company,
                                     custo_id=custo,
@@ -6809,6 +6827,7 @@ def create_Purchase_order(request):
                                     shipping_charge = shipping_charge,
                                     grand_total=grand_total,
                                     note=note,
+                                    
                                     term=terms_con,
                                     company=company,
                                     user = u,typ=typ)
@@ -6822,17 +6841,16 @@ def create_Purchase_order(request):
                 p_bill.save()
                 print('save')
             item = request.POST.getlist("item[]")
-            accounts = request.POST.getlist("account[]")
+            # accounts = request.POST.getlist("account[]")
             quantity = request.POST.getlist("quantity[]")
             rate = request.POST.getlist("rate[]")
             tax = request.POST.getlist("tax[]")
             discount = request.POST.getlist("discount[]")
             amount = request.POST.getlist("amount[]")
-            if len(item) == len(accounts) == len(quantity) == len(rate) == len(discount) == len(tax) == len(amount):
+            if len(item) == len(quantity) == len(rate) == len(discount) == len(tax) == len(amount):
                 for i in range(len(item)):
                     created = Purchase_Order_items.objects.create(
                         item=item[i],
-                        account=accounts[i],
                         quantity=quantity[i],
                         rate=rate[i],
                         tax=tax[i],
@@ -12672,12 +12690,12 @@ def toggle_expense_status(request, expense_id):
     
 @login_required(login_url='login')
 def expense_comment(request,expense_id):
-    print('form is submitted')
+   
     expense = get_object_or_404(Expense, id=expense_id) 
     
 
     if request.method == 'POST':
-        print('form is submitted')
+      
         comment_text = request.POST['comment']
 
         comment = Comment()
@@ -12727,13 +12745,13 @@ def delete_expense_comment(request, expense_id, comment_id):
         
 @login_required(login_url='login')
 def get_customer_email(request):
-    print('customer')
+   
     if request.method == 'GET':
         customer_id = request.GET.get('customername')
         try:
             custmer = customer.objects.get(id=customer_id)
             email = custmer.customerEmail
-            print('email', email)
+           
             return JsonResponse({'email': email})
         except customer.DoesNotExist:  # Corrected exception name
             # Handle the case where the customer does not exist
@@ -13813,6 +13831,12 @@ def daybook(request):
     loan=Loan.objects.all()
     vcr=Vendor_Credits_Bills.objects.all()
     emp=Payroll.objects.all()
+    offbank=Bankdetails.objects.all()
+    bdetails=Bankcreation.objects.all()
+    item=AddItem.objects.all()
+    price=Pricelist.objects.all()
+
+    
 
 
 
@@ -13821,7 +13845,7 @@ def daybook(request):
             'cred':cred,'inv':inv,
             'dc':dc,'esti':esti,'retain':retain,'sales':sales,'payment':payment,
             'recbill':recbill,'exp':exp,'purchase':purchase,'pbill':pbill,'ebill':ebill,
-            'loan':loan,'vcr':vcr,'emp':emp,
+            'loan':loan,'vcr':vcr,'emp':emp,'offbank':offbank,'bdetails':bdetails,'item':item,'price':price,
     }
     return render(request,'daybook.html',context)
 
@@ -13856,7 +13880,7 @@ def save_recurring_data(request):
 @login_required(login_url='login')
 def entr_recurring_custmr(request):
     if request.method == 'POST':
-        print('customer is entered')
+       
 
         type = request.POST.get('radioCust')
         sal=request.POST.get('ctitle')
@@ -13864,7 +13888,7 @@ def entr_recurring_custmr(request):
         lname=request.POST.get('clastname')
         # fullname=request.POST.get('cdisplayname')
         fullname = sal + ' ' + fname + ' ' + lname if fname and lname else (fname or lname)
-        print(fullname)
+        
         company = request.POST.get('ccompany_name')
         email = request.POST.get('cemail')
         wphone = request.POST.get('cw_mobile')
@@ -13876,7 +13900,8 @@ def entr_recurring_custmr(request):
         desg = request.POST.get('c_desg')
         dept = request.POST.get('c_dpt')
         gstt = request.POST.get('c_gsttype')
-        gstin = request.POST.get('v_gstin')
+        gstin = request.POST.get('c_gstin')
+        pan=request.POST.get('c_pan')
         posply = request.POST.get('placesupply')
         tax1 = request.POST.get('radioCust1')
         crncy = request.POST.get('c_curn')
@@ -13912,7 +13937,7 @@ def entr_recurring_custmr(request):
                         website=wbsite, GSTTreatment=gstt, placeofsupply=posply, Taxpreference=tax1,
                         currency=crncy, OpeningBalance=obal,PaymentTerms=pterms,    
                         Facebook=facebook, Twitter=twitter, GSTIN=gstin,Fname=fname,Lname=lname,
-                        country=bcountry, Address1=baddrs1, Address2=baddrs2,
+                        country=bcountry, Address1=baddrs1, Address2=baddrs2,pan_no=pan,
                         city=bcity, state=bstate, zipcode=bpincode, phone1=bphone,
                         fax=bfax, sAddress1=saddrs1, sAddress2=saddrs2, scity=scity, sstate=sstate,
                         scountry=scountry, szipcode=spincode, sphone1=sphone, sfax=sfax, user=u)
@@ -13934,9 +13959,10 @@ def entr_recurring_custmr(request):
     
 @login_required(login_url='login')
 def get_customer_namess(request):
-    customers = customer.objects.all()
+    user_id=request.user.id
+    customers = customer.objects.filter(user=user_id)
     customer_names = [{'id': c.id, 'name':c.customerName} for c in customers]
-    return JsonResponse(customer_names, safe=False)     
+    return JsonResponse(customer_names, safe=False)    
     
     
 @login_required(login_url='login')
@@ -13952,13 +13978,13 @@ def payment_view(request):
     
 @login_required(login_url='login')
 def add_recurring_vendor(request):
-    print("Entering the add_vendor view")
+    
     if request.method=="POST":
-        print('r')
+       
         salutation=request.POST['title']
-        print(salutation)
+        
         first_name=request.POST['firstname']
-        print(first_name)
+        
         last_name=request.POST['lastname']
         company_name=request.POST['vcompany_name']
         vendor_email=request.POST['vemail']
@@ -14030,9 +14056,11 @@ def add_recurring_vendor(request):
         
         vendor_data.save()
         user_id=request.user.id
+
         udata=User.objects.get(id=user_id)
         vendor_data.user=udata
-        vendors = vendor_table.objects.all()
+        vendor_data.save()
+       
         vendorname=f"{vendor_data.first_name} {vendor_data.last_name}"
        
         
@@ -14047,7 +14075,7 @@ def add_recurring_vendor(request):
         'vendorName':vendorname,
     }
         return JsonResponse(response_data)
-    return render(request, 'recurring_home.html')   
+    return render(request, 'recurring_home.html') 
     
     
 #............................................mirna.................manual journal................................
@@ -15102,10 +15130,11 @@ def newreasons(request):
 
 
 def newreasonslist(request):
+    print('hello')
     rson={}
     reasons=Reason.objects.all()
     for r in reasons:
-        rson[r.id]= r.reasonlist
+        rson[r.id]= r.reason
     return JsonResponse(rson)
 
 
@@ -15116,12 +15145,16 @@ def save_adjustment(request):
          date=request.POST['date']
          account=request.POST['account']
          reason=request.POST['reason']
+
+         print(f"reason: {reason}")
          description = request.POST['description']
          user_id = request.user.id 
 
          account_instance = Chart_of_Account.objects.get(id=account)
          user_instance = User.objects.get(id=user_id)
-         reason_instance = Reason.objects.get(id=reason)
+         
+         reason_instance = Reason.objects.get(reason=reason)
+         reason_id = reason_instance.id
          company = company_details.objects.get(user=request.user)
 
          adjustment = Adjustment.objects.create(
@@ -15275,6 +15308,9 @@ def edit_inventory(request,id):
     accounts=Chart_of_Account.objects.all()
     adj_items=ItemAdjustment.objects.filter(adjustment=adj)
     reason=Reason.objects.all()
+    unit=Unit.objects.all()
+    sales=Sales.objects.all()
+    purchase=Purchase.objects.all()
 
     value =[]
     for adjustment in adj_items:
@@ -15285,8 +15321,7 @@ def edit_inventory(request,id):
         print(val,'val')
     print(value,'value is ')
     
-    return render(request,'edit_adjustment.html',{'company':company,'adj':adj,'accounts':accounts,'items':items,'adj_items':adj_items,'value':value,'reason':reason})
-
+    return render(request,'edit_adjustment.html',{'company':company,'adj':adj,'accounts':accounts,'items':items,'adj_items':adj_items,'value':value,'reason':reason,'units':unit,'sales':sales,'purchase':purchase})
   
 
     
@@ -15306,7 +15341,7 @@ def update_adjustment(request,id):
         account_instance = Chart_of_Account.objects.get(id=account)
         adjustment.account=account_instance
         reason=request.POST['reason']
-        reason_instance=Reason.objects.get(id=reason)
+        reason_instance=Reason.objects.get(reason=reason)
         adjustment.reason=reason_instance
         adjustment.description=request.POST['description']
         company = company_details.objects.get(user=user)
@@ -15401,8 +15436,60 @@ def profit_and_loss_scedule_iii_customize_report(request):
     
 def profit_and_loss_scedule_iii_edits_accounts_mapping(request):
     return render(request, 'profit_and_loss_scedule_iii_edits_accounts_mapping.html')
+
+def profit_and_loss_pdf(request):
+    customer1 = customer.objects.all()
+    company= company_details.objects.get(user=request.user)
     
+    template_path = 'profit_and_loss_pdf.html'
+    context = {
+        'customer':customer1,
+        'company': company,
+    }
+    # Create a Django response object, and specify content_type as pdftemp_creditnote
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="profit_and_loss_report.pdf"'
+    #response['Content-Disposition'] =f'attachment; filename= {fname}.pdf'
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
     
+    # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response   
+
+def profit_and_loss_schedule_III_pdf(request):
+    customer1 = customer.objects.all()
+    company= company_details.objects.get(user=request.user)
+    
+    template_path = 'profit_and_loss_schedule_III_pdf.html'
+    context = {
+        'customer':customer1,
+        'company': company,
+    }
+    # Create a Django response object, and specify content_type as pdftemp_creditnote
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="profit_and_loss_schedule_iii_report.pdf"'
+    #response['Content-Disposition'] =f'attachment; filename= {fname}.pdf'
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+    
+    # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+
 #--End--
 
 def recurinvoice_customer(request):
@@ -15478,27 +15565,229 @@ def balance_sheet_sthree(request):
 def customize_report_bss3(request):
     company = company_details.objects.get(user = request.user.id)
     return render(request,'customize_report_bss3.html',{'company':company})
+    
+    
+def view_vendor_active(request):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user.id
+    udata=User.objects.get(id=user_id)
+    data=vendor_table.objects.filter(user=udata,status='Active').order_by('-id')
+    return render(request,'vendor_list.html',{'data':data,'company':company})
+    
+def view_vendor_inactive(request):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user.id
+    udata=User.objects.get(id=user_id)
+    data=vendor_table.objects.filter(user=udata,status='Inactive').order_by('-id')
+    return render(request,'vendor_list.html',{'data':data,'company':company})
 
-#_______________________Godown______________________
+def sort_vendor_by_name(request):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user.id
+    udata=User.objects.get(id=user_id)
+    data=vendor_table.objects.filter(user=udata).order_by('first_name')
+    return render(request,'vendor_list.html',{'data':data,'company':company})
+
+def sort_vendor_by_amount(request):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user.id
+    udata=User.objects.get(id=user_id)
+    data=vendor_table.objects.filter(user=udata).order_by('opening_bal')
+    return render(request,'vendor_list.html',{'data':data,'company':company})
+
+
+def sort_vendor_by_name_det(request,pk):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user.id
+    udata=User.objects.get(id=user_id)
+    vdata1=vendor_table.objects.filter(user=udata).order_by('first_name')
+    vdata2=vendor_table.objects.get(id=pk)
+    mdata=mail_table.objects.filter(vendor=vdata2)
+    ddata=doc_upload_table.objects.filter(user=udata,vendor=vdata2)
+    cmt_data=comments_table.objects.filter(user=udata,vendor=vdata2)
+    contact_persons = contact_person_table.objects.filter(user=udata,vendor=vdata2)
+
+    fname = vdata2.first_name
+    lname = vdata2.last_name
+    fullname = fname + ' ' + lname
+    v_email = vdata2.vendor_email
+    name_and_id = fullname +' '+ str(vdata2.id) 
+    id_and_name = str(vdata2.id) +' '+ fullname  
+
+    print(fname)
+    print(lname)
+    print(fullname)
+    print(v_email)
+    print(name_and_id)
+
+    expence = ExpenseE.objects.filter(user = udata,vendor_id = pk)
+    recurring_expense = Expense.objects.filter(vendor_id = pk)
+    purchase_ordr = Purchase_Order.objects.filter(user = udata,vendor_name = name_and_id)
+    paymnt_made = payment_made.objects.filter(user = udata,vendor_id = pk)
+    purchase_bill = PurchaseBills.objects.filter(user = udata,vendor_name = fullname,vendor_email = v_email)
+    recurring_bill = recurring_bills.objects.filter(user = udata,vendor_name = id_and_name)
+
+    context = {
+        'company':company,
+        'vdata':vdata1,
+        'vdata2':vdata2,
+        'mdata':mdata,
+        'ddata':ddata,
+        'cmt_data':cmt_data,
+        'contact_persons':contact_persons,
+        'expence':expence,
+        'recurring_expense':recurring_expense,
+        'purchase_ordr':purchase_ordr,
+        'paymnt_made':paymnt_made,
+        'purchase_bill':purchase_bill,
+        'recurring_bill':recurring_bill,
+
+    }
+
+    return render(request,'vendor_details.html',context)
+
+def sort_vendor_by_amount_det(request,pk):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user.id
+    udata=User.objects.get(id=user_id)
+    vdata1=vendor_table.objects.filter(user=udata).order_by('opening_bal')
+    vdata2=vendor_table.objects.get(id=pk)
+    mdata=mail_table.objects.filter(vendor=vdata2)
+    ddata=doc_upload_table.objects.filter(user=udata,vendor=vdata2)
+    cmt_data=comments_table.objects.filter(user=udata,vendor=vdata2)
+    contact_persons = contact_person_table.objects.filter(user=udata,vendor=vdata2)
+
+    fname = vdata2.first_name
+    lname = vdata2.last_name
+    fullname = fname + ' ' + lname
+    v_email = vdata2.vendor_email
+    name_and_id = fullname +' '+ str(vdata2.id) 
+    id_and_name = str(vdata2.id) +' '+ fullname  
+
+    print(fname)
+    print(lname)
+    print(fullname)
+    print(v_email)
+    print(name_and_id)
+
+    expence = ExpenseE.objects.filter(user = udata,vendor_id = pk)
+    recurring_expense = Expense.objects.filter(user = udata,vendor_id = pk)
+    purchase_ordr = Purchase_Order.objects.filter(user = udata,vendor_name = name_and_id)
+    paymnt_made = payment_made.objects.filter(user = udata,vendor_id = pk)
+    purchase_bill = PurchaseBills.objects.filter(user = udata,vendor_name = fullname,vendor_email = v_email)
+    recurring_bill = recurring_bills.objects.filter(user = udata,vendor_name = id_and_name)
+
+    context = {
+        'company':company,
+        'vdata':vdata1,
+        'vdata2':vdata2,
+        'mdata':mdata,
+        'ddata':ddata,
+        'cmt_data':cmt_data,
+        'contact_persons':contact_persons,
+        'expence':expence,
+        'recurring_expense':recurring_expense,
+        'purchase_ordr':purchase_ordr,
+        'paymnt_made':paymnt_made,
+        'purchase_bill':purchase_bill,
+        'recurring_bill':recurring_bill,
+
+    }
+
+    return render(request,'vendor_details.html',context)
+    
+    
+    
+@login_required(login_url='login')
+def new_item(request):
+
+    company = company_details.objects.get(user = request.user)
+
+    if request.method=='POST':
+        type=request.POST.get('type')
+        name=request.POST['name']
+        ut=request.POST['unit']
+
+        print('ut',ut)
+        inter=request.POST['inter']
+        intra=request.POST['intra']
+        sell_price=request.POST.get('sell_price')
+        sell_acc=request.POST.get('sell_acc')
+        sell_desc=request.POST.get('sell_desc')
+        cost_price=request.POST.get('cost_price')
+        cost_acc=request.POST.get('cost_acc')      
+        cost_desc=request.POST.get('cost_desc')
+        units=Unit.objects.get(unit=ut)
+        sel=Sales.objects.get(id=sell_acc)
+        cost=Purchase.objects.get(id=cost_acc)
+        stock=request.POST.get('openstock')
+        rate=request.POST.get('inventoryaccntperunit')
+      
+        status_stock=request.POST.get('satus',0)
+        invacc=request.POST.get('invacc')
+
+        history="Created by " + str(request.user)
+        user = User.objects.get(id = request.user.id)
+
+        item=AddItem(type=type,unit=units,sales=sel,purchase=cost,Name=name,p_desc=cost_desc,s_desc=sell_desc,s_price=sell_price,p_price=cost_price,
+                    user=user,creat=history,interstate=inter,intrastate=intra,stock=stock,rate=rate,status_stock=status_stock,invacc=invacc)
+
+        item.save()
+        return HttpResponse({"message": "success"})
+    
+
+
+  
+@login_required(login_url='login')        
+def new_item_dropdown(request):
+
+    user = User.objects.get(id=request.user.id)
+    
+    options = {}
+    option_objects = AddItem.objects.all()
+    for option in option_objects:
+
+         options[option.id] = {
+            'name': option.Name,
+            'stock': option.stock,  
+            'rate': option.rate,   
+        }
+    
+    return JsonResponse(options, safe=False)
+
+
+
+#_______________________Godown_____________Antony Tom_________________
 
 def add_godown(request):
     company=company_details.objects.get(user=request.user)
     additem=AddItem.objects.all()
-    return render(request,'add_godown.html',{'company':company,'additem':additem})
+    unit=Unit.objects.all()
+    sale=Sales.objects.all()
+    purchase=Purchase.objects.all()
+    accounts = Purchase.objects.all()
+    account_types = set(Purchase.objects.values_list('Account_type', flat=True))
+
+    
+    account = Sales.objects.all()
+    account_type = set(Sales.objects.values_list('Account_type', flat=True))
+    return render(request,'add_godown.html',{'additem':additem,'sale':sale,'purchase':purchase,'company':company,'unit':unit,
+               
+                            "account":account,"account_type":account_type,"accounts":accounts,"account_types":account_types,})
 
 def view_godown(request):
-    return render(request,'view_godown.html')
+    company = company_details.objects.get(user=request.user)
+    user_id = request.user.id
+    product = Addgodown.objects.all()
+    deleted_godowns = Delete_godown.objects.filter(deletestatus=1).values_list('godown', flat=True)
+    addgodown = Addgodown.objects.exclude(id__in=deleted_godowns)
 
-# @login_required(login_url='login')
-# def items_dropdown(request):
-#     user = User.objects.get(id=request.user.id)
-#     options = {}
-#     option_objects = AddItem.objects.filter(user=user)
-#     for option in option_objects:
-#         display_name = option.hsn
-#         # options[option.id] = [option.id , option.customerName]
-#         options[option.id] = [display_name, f"{display_name}"]
-#     return JsonResponse(options)
+    print(product)  
+
+    return render(request, 'view_godown.html', {'addgodown': addgodown, 'company': company, 'product': product})
+
+
+
 
 @login_required(login_url='login')
 def get_itemsdet(request):
@@ -15508,14 +15797,7 @@ def get_itemsdet(request):
     cust = AddItem.objects.get(user=company.user_id,id=id)
     hsn = cust.hsn
     cust_id=id
-    # cust_place_supply=cust.placeofsupply
-    # gstin = 0
-    # gsttr = cust.GSTTreatment
-    # cstate = cust.placeofsupply.split("] ")[1:]
     print(hsn)
-    # print(gstin)
-    print(id)
-    # state = 'Not Specified' if cstate == "" else cstate
     return JsonResponse({'hsn' :hsn,'cust_id':cust_id},safe=False)
 
 def get_item_info(request, item_id):
@@ -15533,6 +15815,8 @@ def get_item_info(request, item_id):
 @login_required(login_url='login')
 def save_godown(request):
     if request.method == 'POST':
+        current_user = request.user.id
+        
         date = request.POST['date']
         item = request.POST['item']
         hsn = request.POST['hsn']
@@ -15541,12 +15825,275 @@ def save_godown(request):
         Address = request.POST['address']
         stockkeeping = request.POST['stockkeeping']
         kilometer = request.POST['Kilometer']
+        user=User.objects.get(id=current_user)
+        item1=AddItem.objects.get(id=item)
 
         godown = Addgodown(date=date, item=item,hsn=hsn,stockinhand=stockinhand, godownname=godown_name,
-                              Address=Address, stockkeeping=stockkeeping, kilometer=kilometer)
+                              Address=Address, stockkeeping=stockkeeping, kilometer=kilometer,user=user,additem=item1)
         godown.save()
 
   
         return redirect('view_godown')  
 
     return render(request, 'add_godown.html')  
+
+
+
+@login_required(login_url='login')
+def add_modalgodown(request):
+    company = company_details.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        type = request.POST.get('type')
+        name = request.POST.get('name')
+        ut = request.POST.get('unit')
+        hsnc = request.POST.get('hsn')
+        inter = request.POST.get('inter')
+        intra = request.POST.get('intra')
+        sell_price = request.POST.get('sell_price')
+        sell_acc = request.POST.get('sell_acc')
+        sell_desc = request.POST.get('sell_desc')
+        cost_price = request.POST.get('cost_price')
+        cost_acc = request.POST.get('cost_acc')
+        cost_desc = request.POST.get('cost_desc')
+        stock = request.POST.get('stock')
+        rate = request.POST.get('rate')
+
+        units = Unit.objects.get(id=ut)
+        sel = Sales.objects.get(id=sell_acc)
+        cost = Purchase.objects.get(id=cost_acc)
+
+        history = "Created by " + str(request.user)
+
+        u = User.objects.get(id=request.user.id)
+
+        item = AddItem(type=type, Name=name, p_desc=cost_desc, s_desc=sell_desc, s_price=sell_price, p_price=cost_price,
+                        user=u, creat=history, interstate=inter, intrastate=intra, unit=units, sales=sel, purchase=cost,
+                        hsn=hsnc, stock=stock, rate=rate)
+
+        item.save()
+
+       
+        added_item = {
+            'id': item.id,
+            'Name': item.Name
+        }
+
+        return JsonResponse(added_item)
+    
+    return HttpResponse("Invalid request method.")
+
+
+
+@login_required(login_url='login')
+def add_unitmodal(request):
+    if request.method == 'POST':
+        unit_name = request.POST['unit_name']
+        unit = Unit(unit=unit_name)  
+        unit.save()  
+        unit_id = unit.id  
+        return JsonResponse({"unit_name": unit_name, "unit_id": unit_id})
+    return render(request, "add_godown.html")
+
+@login_required(login_url='login')
+def godownoverview(request,id):
+    company=company_details.objects.get(user=request.user)
+    user_id=request.user
+    product=Addgodown.objects.get(id=id)
+    Comments=Comments_godown.objects.filter(godown=product.id,user=user_id)
+
+    deleted_godowns = Delete_godown.objects.filter(deletestatus=1).values_list('godown', flat=True)
+
+    viewgodown = Addgodown.objects.exclude(id__in=deleted_godowns)
+    
+    return render(request,'godownoverview.html',{'viewgodown':viewgodown,'product':product,'Comments':Comments})
+
+
+@login_required(login_url='login')
+def godown_edit(request,id):
+    item=AddItem.objects.all()
+    godown=Addgodown.objects.all()
+    edit=Addgodown.objects.get(id=id)
+    company=company_details.objects.get(user=request.user)
+    return render(request,'editgodown.html',{'e':edit,'godown':godown,'company':company,'item':item})
+
+
+@login_required(login_url='login')
+def edit_savegodown(request, id):
+    additem = Addgodown.objects.all()
+    edit = Addgodown.objects.get(id=id)
+    company = company_details.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        
+        new_item_id = request.POST.get('item')
+
+        
+        if new_item_id:
+            new_item = AddItem.objects.get(id=new_item_id)
+            edit.additem = new_item
+
+       
+        edit.item = request.POST.get('item')
+        edit.date = request.POST.get('date')
+        edit.hsn = request.POST['hsn']
+        edit.stockinhand = request.POST['stock']
+        edit.godownname = request.POST['name']
+        edit.Address = request.POST['address']
+        edit.stockkeeping = request.POST['stockkeeping']
+        edit.kilometer = request.POST['Kilometer']
+
+        edit.save()
+
+        return redirect('godownoverview', id=edit.id)
+
+    return render(request, 'editgodown.html', {'e': edit, 'additem': additem, 'company': company})
+
+
+
+@login_required(login_url='login')
+def deletegodownoverview(request,id):
+    godown = Addgodown.objects.get(id=id)
+
+    if request.method == 'POST':
+        reason = request.POST.get('deletereason')
+        current_user = request.user
+
+    
+        new_godown = Delete_godown(
+            user=current_user,
+            godown=godown,
+            reason=reason,
+            deletestatus=1  
+        )
+        new_godown.save()
+
+        return redirect('view_godown')
+
+    return render(request, 'godownoverview.html')
+
+
+@login_required(login_url='login')
+def deleteviewgodown(request, id):
+    godown = Addgodown.objects.get(id=id)
+
+    if request.method == 'POST':
+        reason = request.POST.get('deletereason')
+        current_user = request.user
+
+        
+        new_godown = Delete_godown(
+            user=current_user,
+            godown=godown,
+            reason=reason,
+            deletestatus=1  
+        )
+        new_godown.save()
+
+        return redirect('view_godown')
+
+    return render(request, 'view_godown.html')
+
+
+
+def commentgodown(request,product_id):
+    if request.method=="POST":
+        user=request.user      
+        godown=Addgodown.objects.get(id=product_id)
+       
+        content=Comments_godown()
+        content.user=user
+        content.godown=godown
+        content.content=request.POST.get('comments')
+       
+        content.save()
+    return redirect('godownoverview',godown.id)
+
+def editcommentgodown(request, product_id):
+    if request.method == 'POST':
+        user=request.user      
+        godown=Addgodown.objects.get(id=product_id)
+        edited_comment = request.POST['edited_comment']
+        comment_id = request.POST['comment_id']
+        
+        # Get the comment based on its ID
+        comment = Comments_godown.objects.get(id=comment_id)
+        comment.content = edited_comment
+        comment.save()
+        return redirect("godownoverview",godown.id)
+
+
+@login_required(login_url='login')
+def delete_commentgodown(request, product_id, comment_id):
+    try:
+        comment = Comments_godown.objects.get(id=comment_id, godown=product_id, user=request.user)
+        comment.delete()
+    except Comments_godown.DoesNotExist:
+        pass
+
+    return redirect('godownoverview', product_id)
+
+
+
+def godown_active(request,id):
+    p=Addgodown.objects.get(id=id)
+    if p.satus == 'Active':
+        p.satus = 'Inactive'
+    else:
+        p.satus = 'Active'
+    p.save()
+    return redirect('godownoverview',id=id)
+
+def upload_documentsgodown(request, godown_id):
+    if request.method == 'POST':
+        user_id = request.user.id
+        user = User.objects.get(id=user_id)
+        godown = Addgodown.objects.get(id=godown_id)
+        attachment_file = request.FILES.get('attachment')
+
+        doc_data = Attachgodown.objects.create(user=user, godown=godown, attachment=attachment_file)
+        doc_data.save()
+
+        return redirect("godownoverview", id=godown_id)
+
+@login_required(login_url='login')
+def add_sales_godown(request):
+    if request.method=='POST':
+        Account_type  =request.POST['acc_type']
+        Account_name =request.POST['acc_name']
+        Acount_code =request.POST['acc_code']
+        Account_desc =request.POST['acc_desc']        
+        acc=Purchase(Account_type=Account_type,Account_name=Account_name,Acount_code=Acount_code,Account_desc=Account_desc)
+        acc.save()
+        return redirect("add_godown")
+    return render(request,"add_godown.html")
+
+
+@login_required(login_url='login')
+def godownmodal_unit(request):
+    
+    company = company_details.objects.get(user = request.user)
+
+    if request.method=='POST':
+
+        unit =request.POST.get('unit')
+        
+        u = User.objects.get(id = request.user.id)
+
+        unit = Unit(unit= unit)
+        unit.save()
+
+        return HttpResponse({"message": "success"})
+
+
+@login_required(login_url='login')
+def godownunit_dropdown(request):
+
+    user = User.objects.get(id=request.user.id)
+
+    options = {}
+    option_objects = Unit.objects.all()
+    for option in option_objects:
+        options[option.id] = [option.unit,option.id]
+
+    return JsonResponse(options)

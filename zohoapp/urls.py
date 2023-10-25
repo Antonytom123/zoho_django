@@ -229,7 +229,7 @@ urlpatterns = [
     
     path('view_customr', views.view_customr, name='view_customr'),
     path('view_one_customer/<int:id>', views.view_one_customer, name='view_one_customer'),
-    path('view_customr_sname', views.view_customr_sname, name='view_customr_sname'),
+    path('mr_sname', views.view_customr_sname, name='view_customr_sname'),
     path('view_customr_scpname', views.view_customr_scpname, name='view_customr_scpname'),
    
     path('editcustomer/<int:id>', views.editcustomer, name='editcustomer'),
@@ -751,7 +751,45 @@ urlpatterns = [
     path('customize_report_hpl',views.customize_report_hpl,name='customize_report_hpl'),
     path('balance_sheet_sthree',views.balance_sheet_sthree,name='balance_sheet_sthree'),
     path('customize_report_bss3',views.customize_report_bss3,name='customize_report_bss3'),
+    path('profit_and_loss_pdf',views.profit_and_loss_pdf,name='profit_and_loss_pdf'),
+    path('profit_and_loss_schedule_III_pdf',views.profit_and_loss_schedule_III_pdf,name='profit_and_loss_schedule_III_pdf'),
     
+    #---------vendor corrections----sumayya---------------------------------------------------------------
+    path('view_vendor_active',views.view_vendor_active,name='view_vendor_active'),
+    path('view_vendor_inactive',views.view_vendor_inactive,name='view_vendor_inactive'),
+    path('sort_vendor_by_name',views.sort_vendor_by_name,name='sort_vendor_by_name'),
+    path('sort_vendor_by_amount',views.sort_vendor_by_amount,name='sort_vendor_by_amount'),
+    path('sort_vendor_by_name_det/<int:pk>',views.sort_vendor_by_name_det,name='sort_vendor_by_name_det'),
+    path('sort_vendor_by_amount_det/<int:pk>',views.sort_vendor_by_amount_det,name='sort_vendor_by_amount_det'),
+
+
+    #----------------------------------------------------------------------------------------------------
+    
+    path('new_item',views.new_item,name='new_item'),
+    path('new_item_dropdown',views.new_item_dropdown,name='new_item_dropdown'),
+
+ # .........................................Godown........................
+    path('add_godown',views.add_godown,name='add_godown'),
+    path('view_godown',views.view_godown,name='view_godown'),
+    path('get_itemsdet',views.get_itemsdet,name='get_itemsdet'),
+    path('get_item_info/<int:item_id>/', views.get_item_info, name='get_item_info'),
+    path('save_godown',views.save_godown,name='save_godown'),
+    path('add_modalgodown',views.add_modalgodown,name='add_modalgodown'),
+    path('add_unitmodal',views.add_unitmodal,name='add_unitmodal'), 
+    path('godownoverview/<int:id>',views.godownoverview,name='godownoverview'),
+    path('godown_edit/<int:id>',views.godown_edit,name='godown_edit'),
+    path('edit_savegodown/<int:id>',views.edit_savegodown,name='edit_savegodown'),
+    path('deletegodownoverview/<int:id>',views.deletegodownoverview,name='deletegodownoverview'),
+    path('commentgodown/<int:product_id>',views.commentgodown,name='commentgodown'),
+    path('delete_commentgodown/<int:product_id>/<int:comment_id>/', views.delete_commentgodown, name='delete_commentgodown'),
+    path('deleteviewgodown/<int:id>/', views.deleteviewgodown, name='deleteviewgodown'),
+    path('godown_active/<int:id>', views.godown_active, name='godown_active'),
+    path('upload_documentsgodown/<int:godown_id>',views.upload_documentsgodown,name='upload_documentsgodown'),
+    path('editcommentgodown/<int:product_id>',views.editcommentgodown,name='editcommentgodown'),
+    path('add_sales_godown',views.add_sales_godown,name='add_sales_godown'),
+    path('godownmodal_unit',views.godownmodal_unit,name='godownmodal_unit'),
+    path('godownunit_dropdown',views.godownunit_dropdown,name='godownunit_dropdown'),
+
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
     
     
